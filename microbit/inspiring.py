@@ -3,11 +3,8 @@ import array
 # the API is likely to change, and may change in ways that break existing code.
 
 # this is a port of apa.py to the microbit.
-# It works for 64 leds, when 65 leds are selected the program crashes
-# I have done some investigation and it seems that each time a new element in self.leds is created
-# 32 36 bytes of data are used. Eventually at 65 elements the microbit runs out of memory
-# I have investigated on a PI and there 32 bytes are used to create the self.leds object and an additional 4 bytes
-# are used per element.
+# I have modified how the leds are stored to use bytearray, thanks to some help
+# from the micropyton forum.
 
 DELAY = 20
 
