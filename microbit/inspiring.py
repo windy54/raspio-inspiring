@@ -9,22 +9,17 @@ import array
 # I have investigated on a PI and there 32 bytes are used to create the self.leds object and an additional 4 bytes
 # are used per element.
 
-DELAY = 200
+DELAY = 20
 
 
 class Apa:
     def __init__(self, num_leds):
-        self.buffer = bytearray(4)
-        self.leds = [array.array('b',[0xE0, 0, 0x0, 0]) for i in range(num_leds)]
+        self.leds = bytearray(4 + num_leds * 4 + 4)
 
 
     def show(self):
-        spi.write(b'\x00\x00\x00\x00')
-        for led in self.leds:
-            for i in range(4):
-                self.buffer[i] = led[i]
-            spi.write(self.buffer)
-        spi.write(b'\x00\x00\x00\x00')
+        spi.write(self.leds)
+       
 
     def limit(self, intensity):
         # intensity ranges from 0 (off) to 31 (very bright)
@@ -46,10 +41,10 @@ class Apa:
 
     # low-level set method allows default intensity, adjusts intensity value
     def set_led(self, n, r, b, g, intensity=5):
-        self.leds[n][0] = self.limit(intensity)
-        self.leds[n][1] = r
-        self.leds[n][2] = b
-        self.leds[n][3] = g
+        self.leds[4 + 4 * n + 0] = self.limit(intensity)
+        self.leds[4 + 4 * n + 1] = r
+        self.leds[4 + 4 * n + 2] = b
+        self.leds[4 + 4 * n + 3] = g
 
 
 def blue_demo(num_leds):
@@ -60,18 +55,18 @@ def blue_demo(num_leds):
     # Pin 13 of the microbit is therefore used as CI (SCLCK) - the clock
     # Pin 15 of the microbit is used as DI (MOSI) - the data
 
-    spi.init()
+   
 
     # turn each LED blue
 
     for i in range(num_leds):
-        apa[i] = (0x30, 0x0, 0x0, 10)
+        apa.set_led (i, 0x30, 0x0, 0x0, 10)
         apa.show()
         sleep(100)
     # turn each LED off
 
     for i in range(num_leds):
-        apa[i] = (0x0, 0x0, 0x0, 0x0)
+        apa.set_led(i, 0x0, 0x0, 0x0, 0x0)
         apa.show()
         sleep(100)
 
@@ -79,7 +74,7 @@ def blue_demo(num_leds):
 def multi_colours(num_leds):
 
     apa = Apa(num_leds)
-    spi.init()
+    
     # repeat until button A is pressed
     while button_a.get_presses() == 0:
         for i in range(num_leds):
@@ -98,12 +93,7 @@ def multi_colours(num_leds):
 
 
 def fast_leds(num_leds):
-    display.show("F")
     apa = Apa(num_leds)
-    display.show("A")
-    sleep(200)
-    spi.init()
-    display.show("I")
     # repeat until button A is pressed
     while button_a.get_presses() == 0:
         for i in range(num_leds):
@@ -116,7 +106,8 @@ def fast_leds(num_leds):
 
 
 if __name__ == '__main__':
+    spi.init()
     # blue_demo()
     display.show(Image.HAPPY)
     # multi_colours(64)
-    fast_leds(64)
+    fast_leds(136)
